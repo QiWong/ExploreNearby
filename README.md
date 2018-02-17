@@ -11,7 +11,6 @@
 *This project is still in progress and currenlty has two parts.*
 
 In the search page, the user could search the information near the place he/she wants to visit or look for the service around him/her. The data is provided by Google Places API.
-![alt text](https://github.com/QiWong/ExploreNearby/blob/master/exampleImg/example2.png?raw=true "My project demo picture")
 ---
 
 
