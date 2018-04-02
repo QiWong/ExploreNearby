@@ -1,0 +1,243 @@
+<html lang="en">
+<head>
+	<title>Travel And Entertainment Search</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="./jsFrontend/Library/bootstrap-4.0.0-dist/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="./css/search.css">
+	<link rel="stylesheet" href="./css/open-iconic-master/font/css/open-iconic-bootstrap.css">
+
+    <script src="./jsFrontend/Library/jquery-3.3.1.min.js" ></script>
+	<!--<script src="./jsFrontend/Library/popper.min.js"></script>-->
+	<script src="./jsFrontend/Library/bootstrap-4.0.0-dist/js/bootstrap.min.js"></script>
+	<script src="./jsFrontend/Library/angular.min.js"></script>
+	<script src="./jsFrontend/Library/angular-animate.js"></script>
+	<script src="./jsFrontend/searchPage.js"></script>
+	<script defer src="./jsFrontend/Library/fontawesome-all.min.js"></script>
+</head>
+
+<body ng-app="searchApp" ng-init="get_ip_location=true;searchPlaces=true;" ng-controller="searchCtrl">
+<!--Use get_ip_location variable to isable the search button when the page loads.-->
+	<div class="container">
+	<div class="row tex-center">
+	<div class="col-sm-2 col-1"></div>
+	<div class="col-sm-8 col-10 searchFormDiv">
+
+		<div class="row text-center">
+			<div class="col-12">
+				<h4>Travel And Entertainment Search</h4>
+    		</div>
+		</div>
+
+		<div class="row">
+			<div class="col-sm-2 col-1 "></div>
+			<div class="col-sm-8 col-10">
+
+			  <div class="form-group row">
+			    <label for="keyword" class="col-sm-4 col-form-label searchFormLabel">Keyword</label>
+			    <div class="col-sm-8">
+			    <input type="text" class="form-control" ng-model="keyword" name="keyword" required>
+			  	</div>
+			  </div>
+			  
+
+	
+			  <div class="form-group row">
+			    <label for="categoryList" class="col-sm-4 col-form-label searchFormLabel">Category</label>
+			    <div class="col-sm-8">
+			    <select class="custom-select" id="categoryList" ng-init="category = categoryList[0]"ng-model="category" ng-options="x for x in categoryList">
+				</select>
+			    </div>
+			  </div>
+			
+			  <!--Distance input field-->
+			  <div class="form-group row">
+			    <label for="distance" class="col-sm-4 col-form-label searchFormLabel">Distance (miles)</label>
+			    <div class="col-sm-8">
+			    <input type="number" class="form-control" id="distance" placeholder="10" ng-model="distance">
+			    </div>
+			  </div>
+
+			  <div class="form-group row required">
+			    <label class="col-sm-4 col-form-label searchFormLabel">From</label>
+			    <div class="col-sm-8">
+			    <div class="form-check">
+  					<input class="form-check-input" type="radio" name="startLocation" id="startLocation1" value="here" ng-model="from">
+  					<label class="form-check-label" for="startLocation1">Current location
+  					</label>
+				</div>
+				<div class="form-check">
+  					<input class="form-check-input" type="radio" name="startLocation" id="startLocation2" value="other" ng-model="from">
+  					<label class="form-check-label" for="startLocation2">
+    				Other, please specify:
+  					</label>
+				</div>
+				<!--when the radio here is clicked, then the input field will be disabled-->
+				<input type="text" class="form-control" placeholder="Enter a location" ng-model="input_location" ng-disabled="from=='here'" id="enter_location">
+			    </div>
+			  </div>
+
+			  <!-- Seach and clear button-->
+			  <div class="row">
+			  	<div class="col-sm-12">
+			  		<button type="button" class="btn btn-primary" ng-disabled="!get_ip_location || !keyword" ng-click="searchFunc()"><span class="oi oi-magnifying-glass"></span>Search</button>
+			  		<button type="button" class="btn whiteBtn">Clear</button>
+			  	</div>
+			  </div>
+
+			</div>
+		</div>
+
+	</div>
+	</div>
+	</div>
+
+
+
+    <div id="placesNearbyResults" ng-show="searchPlaces">
+
+    <div class="row" style="margin: 0;">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-10">
+
+    <br>
+    <ul class="nav nav-pills" id="pills-tab" role="tablist">
+	  <li class="nav-item">
+	    <a class="nav-link active" id="pills-results-tab" data-toggle="pill" href="#pills-results" role="tab" aria-controls="pills-results" aria-selected="true">Results</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link" id="pills-favorites-tab" data-toggle="pill" href="#pills-favorites" role="tab" aria-controls="pills-favorites" aria-selected="false">Favorites</a>
+	  </li>
+	</ul>
+
+	<div class="tab-content" id="pills-tabContent">
+	  <div class="tab-pane fade show active" id="pills-results" role="tabpanel" aria-labelledby="pills-results-tab">
+
+	  	<br>
+	  	<div id="results_panel" ng-init="hide_details=true" ng-hide="!hide_details">
+	  	<button type="button"  style="margin-bottom: 10px;" class="btn btn-outline-secondary btn-sm float-right" ng-click="" ng-disabled="true">Details&nbsp;<i class="fas fa-angle-right"></i></button>
+
+	  	<div class="table-responsive">
+ 		<table class="table" ng-init="tableIndex=0;selected_row=-1;">
+ 			<thead>
+ 			<tr>
+ 				<th class="col-1">#</th>
+			    <th class="col-1">Category</th>
+			    <th class="col-4">Name</th>
+			    <th class="col-4">Address</th>
+			    <th class="col-1">Favorite</th>
+			    <th class="col-1">Details</th>
+			</tr>
+			</thead>
+			</div>
+
+			<tbody>
+			<tr ng-repeat="x in all_places[current_page]" ng-style="{'background-color':$index == selected_row?'#F9E79F':'white'}">
+				<th>{{$index + 1}}</th>
+				<td><img class="img-responsive" width="50%" src="{{x.icon}}"></td>
+				<td>{{x.name}}</td>
+				<td>{{x.vicinity}}</td>
+				<td><button type="button" class="btn btn-outline-secondary"><i class="far fa-star"></i></button></td>
+				<td><button type="button" class="btn btn-outline-secondary" ng-click="showDetails($index)"><i class="fas fa-angle-right"></i></button></td>
+			</tr>
+			</tbody>
+ 		</table>
+ 		</div>
+
+ 		<div id="pagination_btns">
+ 		<button type="button" class="btn btn-sm whiteBtn" ng-show="current_page > 0" ng-click="prevSearchResults()">Previous</button>
+ 		<button type="button" class="btn btn-sm whiteBtn" ng-if="!is_last_page" ng-click="nextSearchResults()">&nbsp;&nbsp;&nbsp;&nbsp;Next&nbsp;&nbsp;&nbsp;&nbsp;</button>
+ 		</div>
+ 		</div>
+ 		<div id="details_panel" ng-hide="hide_details">
+ 			<button type="button" class="btn btn-sm grayBtn" ng-click="hide_details = true"><i class="fas fa-angle-left"></i>&nbsp;&nbsp;List</button>
+ 			<br>
+ 			<div id="place_details_div">
+ 				<table class="table table-striped" ng-init="current_place_details=null">
+ 				<tbody>
+ 					<tr>
+				      <th scope="row">Address</th>
+				      <td>{{current_place_details.formatted_address}}</td>
+				    </tr>
+				    <tr ng-if="current_place_details.international_phone_number">
+				      <th scope="row">Phone Number</th>
+				      <td>{{current_place_details.international_phone_number}}</td>
+				    </tr>
+				    <tr ng-if="current_place_details.price_level">
+				      <th scope="row">Price Level</th>
+				      <td><span ng-if="current_place_details.price_level>=1">$</span><span ng-if="current_place_details.price_level>=2">$</span><span ng-if="current_place_details.price_level>=3">$</span></td>
+				    </tr>
+				    <tr ng-if="current_place_details.rating">
+				      <th scope="row">Rating</th>
+				      <td>
+				      	<div class="stars-outer">
+							<i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i>
+						  <div class="stars-inner" ng-style="{'width':current_place_details.rating}">
+						  	<i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i></div>
+						</div>
+				      </td>
+				    </tr>
+				     <tr ng-if="current_place_details.url">
+				      <th scope="row" >Google Page</th>
+				      <td><a href="{{current_place_details.url}}" target="_blank">{{current_place_details.url}}</a></td>
+				    </tr>
+				    <tr ng-if="current_place_details.website">
+				      <th scope="row" >Website</th>
+				      <td><a href="{{current_place_details.website}}"target="_blank">{{current_place_details.website}}</a></td>
+				    </tr>
+				    <tr ng-if="current_place_details.opening_hours">
+				      <th scope="row">Hours</th>
+				      <td>{{openning_status}} &nbsp;&nbsp;<a href="#openingHoursModal" data-toggle="modal" data-target="#openingHoursModal">Daily open hours</a></td>
+				    </tr>
+ 				</tbody>
+ 				</table>
+
+
+				<!-- Modal -->
+				<div class="modal fade" id="openingHoursModal" tabindex="-1" role="dialog" aria-labelledby="openingHoursModalLabel" aria-hidden="true">
+				  <div class="modal-dialog" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <h5 class="modal-title" id="openingHoursModalLabel">Open hours</h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      <div class="modal-body">
+				      <table class="table">
+						<tbody>
+							<tr ng-repeat="hours in weekly_openning_hours" ng-style="{'font-weight':$index == 0?'bold':'normal'}">
+								<td>{{hours[0]}}</td>
+								<td>{{hours[1]}}</td>
+							</tr>
+						</tbody>				        
+						</table>
+				      </div>
+				      <div class="modal-footer">
+				        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				      </div>
+				    </div>
+				  </div>
+				</div>
+
+ 			</div>
+
+ 		</div>
+ 		<br>
+	  </div>
+	  <div class="tab-pane fade" id="pills-favorites" role="tabpanel" aria-labelledby="pills-favorites-tab">hi</div>
+	</div>
+
+ 	</div>
+
+    </div>
+</body>
+</html>
+
+ <script src="https://maps.googleapis.com/maps/api/js?libraries=places&language=en&key=AIzaSyBANG0OukICl6dRuG2FsjZcPkAcjgS7N7Q"></script>
+
+ <!--Google auto complete api key:  AIzaSyBANG0OukICl6dRuG2FsjZcPkAcjgS7N7Q-->
+ <script>
+      var input = document.getElementById('enter_location');
+      var autocomplete = new google.maps.places.Autocomplete(input);
+</script>
+
