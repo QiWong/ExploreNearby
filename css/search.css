@@ -1,0 +1,82 @@
+.searchFormDiv{
+	background-color: rgb(248,248,248);
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+
+.searchFormLabel{
+	font-size: 14px;
+}
+
+.form-group.required .col-form-label:after {
+  content:"*";
+  color:red;
+}
+
+.whiteBtn{
+	background-color: white;
+	border: 1px solid black;
+}
+
+.grayBtn{
+	background-color: white;
+	border: 1px solid gray;
+}
+
+ul{
+	justify-content: center;
+}
+
+#pagination_btns{
+	text-align: center;
+}
+
+/*animation effect*/
+#details_panel{
+	-webkit-transition:all ease 0.5s;
+	transition:all ease 0.5s;
+	-moz-transition:all ease 0.5s;
+    -o-transition:all ease 0.5s;
+    position: relative;
+    left: 0;
+}
+
+#details_panel.ng-hide{
+	left: 100%;
+	opacity: 0;
+}
+
+#results_panel{
+	-webkit-transition:all ease 0.2s;
+	transition:all ease 0.2s;
+	-moz-transition:all ease 0.2s;
+    -o-transition:all ease 0.2s;
+    position: relative;
+    left: 0;
+}
+
+#results_panel.ng-hide{
+	left: -100%;
+	opacity: 0;
+}
+
+.stars-outer {
+	display: inline-block;
+	position: relative;
+}
+
+.outer-stars{
+	color: white;
+}
+
+.stars-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.yellow-stars{
+	color: #f8ce0b;
+}
