@@ -2,20 +2,23 @@
 <head>
 	<title>Travel And Entertainment Search</title>
     <meta charset="utf-8"/>
-    <link rel="stylesheet" href="./jsFrontend/Library/bootstrap-4.0.0-dist/css/bootstrap.min.css">
+    <!--<link rel="stylesheet" href="./jsFrontend/Library/bootstrap-4.0.0-dist/css/bootstrap.min.css">-->
+    <link rel="stylesheet" href="./jsFrontend/Library/bootstrap-4.0.0-dist/css/bootstrap.css">
 	<link rel="stylesheet" type="text/css" href="./css/search.css">
 	<link rel="stylesheet" href="./css/open-iconic-master/font/css/open-iconic-bootstrap.css">
 
     <script src="./jsFrontend/Library/jquery-3.3.1.min.js" ></script>
-	<!--<script src="./jsFrontend/Library/popper.min.js"></script>-->
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&language=en&key=AIzaSyBANG0OukICl6dRuG2FsjZcPkAcjgS7N7Q"></script>
+	<script src="./jsFrontend/Library/popper.js"></script>
 	<script src="./jsFrontend/Library/bootstrap-4.0.0-dist/js/bootstrap.min.js"></script>
-	<script src="./jsFrontend/Library/angular.min.js"></script>
+	<script src="./jsFrontend/Library/angular.js"></script>
 	<script src="./jsFrontend/Library/angular-animate.js"></script>
+	<script src="./jsFrontend/Library/ngStorage.js"></script>
 	<script src="./jsFrontend/searchPage.js"></script>
 	<script defer src="./jsFrontend/Library/fontawesome-all.min.js"></script>
 </head>
 
-<body ng-app="searchApp" ng-init="get_ip_location=true;searchPlaces=true;" ng-controller="searchCtrl">
+<body ng-app="searchApp" ng-init="get_ip_location=true;searchPlaces=false;showStreetView=true;" ng-controller="searchCtrl">
 <!--Use get_ip_location variable to isable the search button when the page loads.-->
 	<div class="container">
 	<div class="row tex-center">
@@ -29,7 +32,7 @@
 		</div>
 
 		<div class="row">
-			<div class="col-sm-2 col-1 "></div>
+			<div class="col-sm-2 col-1"></div>
 			<div class="col-sm-8 col-10">
 
 			  <div class="form-group row">
@@ -102,10 +105,11 @@
     <br>
     <ul class="nav nav-pills" id="pills-tab" role="tablist">
 	  <li class="nav-item">
-	    <a class="nav-link active" id="pills-results-tab" data-toggle="pill" href="#pills-results" role="tab" aria-controls="pills-results" aria-selected="true">Results</a>
+	    <a class="nav-link active" id="pills-results-tab" data-toggle="pill" href="#pills-results" role="tab" aria-controls="pills-results" aria-selected="true" >Results</a>
 	  </li>
+
 	  <li class="nav-item">
-	    <a class="nav-link" id="pills-favorites-tab" data-toggle="pill" href="#pills-favorites" role="tab" aria-controls="pills-favorites" aria-selected="false">Favorites</a>
+	    <a class="nav-link" id="pills-favorites-tab" data-toggle="pill" href="#pills-favorites" role="tab" aria-controls="pills-favorites" aria-selected="false" ng-click="hide_details = true;">Favorites</a>
 	  </li>
 	</ul>
 
@@ -113,31 +117,34 @@
 	  <div class="tab-pane fade show active" id="pills-results" role="tabpanel" aria-labelledby="pills-results-tab">
 
 	  	<br>
-	  	<div id="results_panel" ng-init="hide_details=true" ng-hide="!hide_details">
+	  	<div id="results_panel" ng-init="hide_details=true;" ng-hide="!hide_details">
 	  	<button type="button"  style="margin-bottom: 10px;" class="btn btn-outline-secondary btn-sm float-right" ng-click="" ng-disabled="true">Details&nbsp;<i class="fas fa-angle-right"></i></button>
 
 	  	<div class="table-responsive">
- 		<table class="table" ng-init="tableIndex=0;selected_row=-1;">
+ 		<table class="table" ng-init="selected_row=-1;selected_page=-1">
  			<thead>
  			<tr>
- 				<th class="col-1">#</th>
-			    <th class="col-1">Category</th>
-			    <th class="col-4">Name</th>
-			    <th class="col-4">Address</th>
-			    <th class="col-1">Favorite</th>
-			    <th class="col-1">Details</th>
+ 				<th width="10%">#</th>
+			    <th width="10%">Category</th>
+			    <th width="30%">Name</th>
+			    <th width="30%">Address</th>
+			    <th width="10%">Favorite</th>
+			    <th width="10%">Details</th>
 			</tr>
 			</thead>
-			</div>
+			
 
 			<tbody>
-			<tr ng-repeat="x in all_places[current_page]" ng-style="{'background-color':$index == selected_row?'#F9E79F':'white'}">
+			<tr ng-repeat="x in all_places[current_page]" ng-style="{'background-color':$index == selected_row && selected_page == current_page?'#F9E79F':'white'}">
 				<th>{{$index + 1}}</th>
 				<td><img class="img-responsive" width="50%" src="{{x.icon}}"></td>
 				<td>{{x.name}}</td>
 				<td>{{x.vicinity}}</td>
-				<td><button type="button" class="btn btn-outline-secondary"><i class="far fa-star"></i></button></td>
-				<td><button type="button" class="btn btn-outline-secondary" ng-click="showDetails($index)"><i class="fas fa-angle-right"></i></button></td>
+				<td>
+					<button type="button" class="btn btn-outline-secondary" ng-click="changeFavorite(x.place_id, $index)"><i class="far fa-star" ng-style="{'display':$storage.favorite_place_ids.includes(x.place_id)?'none':'block'}"></i><i class="far fa-trash-alt" ng-style="{'display':$storage.favorite_place_ids.includes(x.place_id)?'block':'none'}"></i></button>
+				</td>
+				<td><button type="button" class="btn btn-outline-secondary" ng-click="showDetails($index, x.place_id)"><i class="fas fa-angle-right"></i></button>
+				</td>
 			</tr>
 			</tbody>
  		</table>
@@ -148,10 +155,72 @@
  		<button type="button" class="btn btn-sm whiteBtn" ng-if="!is_last_page" ng-click="nextSearchResults()">&nbsp;&nbsp;&nbsp;&nbsp;Next&nbsp;&nbsp;&nbsp;&nbsp;</button>
  		</div>
  		</div>
- 		<div id="details_panel" ng-hide="hide_details">
+ 		
+ 		</div>
+
+
+	  <div class="tab-pane fade" id="pills-favorites" role="tabpanel" aria-labelledby="pills-favorites-tab">
+	  	<!--============Favorite places will be shown here============-->
+	  	<br>
+	  	<button type="button"  style="margin-bottom: 10px;" class="btn btn-outline-secondary btn-sm float-right" ng-click="" ng-disabled="true">Details&nbsp;<i class="fas fa-angle-right"></i></button>
+	  	<div class="table-responsive">
+ 		<table class="table">
+ 			<thead>
+ 			<tr>
+ 				<th width="10%">#</th>
+			    <th width="10%">Category</th>
+			    <th width="30%">Name</th>
+			    <th width="30%">Address</th>
+			    <th width="10%">Favorite</th>
+			    <th width="10%">Details</th>
+			</tr>
+			</thead>
+			
+
+			<tbody>
+			<tr ng-repeat="x in $storage.favorite_places">
+				<th>{{$index + 1}}</th>
+				<td><img class="img-responsive" width="50%" src="{{x.icon}}"></td>
+				<td>{{x.name}}</td>
+				<td>{{x.vicinity}}</td>
+				<td>
+					<button type="button" class="btn btn-outline-secondary" ng-click="changeFavorite(x.place_id, $index)"><i class="far fa-star" ng-style="{'display':$storage.favorite_place_ids.includes(x.place_id)?'none':'block'}"></i><i class="far fa-trash-alt" ng-style="{'display':$storage.favorite_place_ids.includes(x.place_id)?'block':'none'}"></i></button>
+				</td>
+				<td><button type="button" class="btn btn-outline-secondary" ng-click=""><i class="fas fa-angle-right"></i></button>
+				</td>
+			</tr>
+			</tbody>
+ 		</table>
+ 		</div>
+
+	</div>
+	</div>
+
+	<!--============================Place Details=============================-->
+	<div id="details_panel" ng-hide="hide_details">
  			<button type="button" class="btn btn-sm grayBtn" ng-click="hide_details = true"><i class="fas fa-angle-left"></i>&nbsp;&nbsp;List</button>
+ 			
  			<br>
- 			<div id="place_details_div">
+
+ 			<ul class="nav nav-tabs justify-content-end" role="tablist">
+			  <li class="nav-item">
+			    <a class="nav-link active" id="info-tab" data-toggle="tab" href="#place_details_div" role="tab" aria-controls="place_details_div" aria-selected="true">Info</a>
+			  </li>
+			  <li class="nav-item">
+			    <a class="nav-link" id="photos-tab" data-toggle="tab" href="#photos" role="tab" aria-controls="photos" aria-selected="false">Photos</a>
+			  </li>
+			  <li class="nav-item">
+			    <a class="nav-link" id="map-tab" data-toggle="tab" href="#mapPanel" role="tab" aria-controls="mapPanel" aria-selected="false" ng-click="showMapPanel()">Map</a>
+			  </li>
+			  <li class="nav-item">
+			    <a class="nav-link" id="reviews-tab" data-toggle="tab" href="#reviewsPanel" role="tab" aria-controls="reviewsPanel" aria-selected="false">Reviews</a>
+			  </li>
+			</ul>
+
+			<div class="tab-content">
+			<!--Panels -->
+
+ 			<div id="place_details_div" class="tab-pane fade show active" role="tabpanel" aria-labelledby="info-tab">
  				<table class="table table-striped" ng-init="current_place_details=null">
  				<tbody>
  					<tr>
@@ -219,25 +288,175 @@
 				  </div>
 				</div>
 
+				<!-- details panel-->
  			</div>
 
- 		</div>
- 		<br>
-	  </div>
-	  <div class="tab-pane fade" id="pills-favorites" role="tabpanel" aria-labelledby="pills-favorites-tab">hi</div>
-	</div>
+ 			 <div class="tab-pane fade" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+ 			 	<!-- photos panel-->
+ 			 	<div id="uselessMapContainer"></div>
+ 			 	<div class="card-columns">
+ 			 		<div class="card" ng-repeat="photo_url in photo_urls">
+ 			 			<img class="card-img" src="{{photo_url}}">
+ 			 		</div>
+ 			 	</div>
 
+ 			 </div>
+ 			 <!--======================Map==================-->
+			  <div class="tab-pane fade" id="mapPanel" role="tabpanel" aria-labelledby="map-tab">
+			  	<!--======================Map Forms==================-->
+			  	<div class="row align-items-end" id="map_directions_panel">
+					<div class="col-lg-4 col-md-4 col-sm-4 col-12">
+				    <div class="form-group">
+				      <label for="map_location_input">From</label>
+				      <input type="text" class="form-control" id="map_location_input" placeholder="Your location">
+				    </div>
+  					</div>
+
+					<div class="col-lg-4 col-md-4 col-sm-4 col-12">
+					<div class="form-group">
+					    <label for="map_dest_input">To</label>
+					    <input type="text" class="form-control" id="map_dest_input" placeholder="{{all_places[current_page][selected_row]['vicinity']}}" disabled>
+					</div>
+					</div>
+
+				    <div class="col-md-2 col-sm-2 col-12">
+				    <div class="form-group">
+				    	<label for="map_mode_option">Travel Model</label>
+				    	<select class="custom-select" id="map_mode_option" ng-model="travel_mode" ng-init="travel_mode = 'Driving'" >
+				    		<option value="Driving" selected>Driving</option>
+				        	<option value="Bycycling">Bycycling</option>
+				        	<option value="Transit">Transit</option>
+				        	<option value="Walking">Walking</option>
+				    	</select>
+				    </div>
+				    </div>
+
+					<div class="col-md-2 col-sm-2 col-12">
+    					<div class="form-group">
+      					<button type="button" class="btn btn-primary" ng-click="showRoutes()">Get Directions</button>
+    					</div>
+  					</div>
+				</div>
+
+				<!--======================Steet views and routes==============-->
+				<img src="{{showStreetView?'./css/MapIcon.png':'./css/Pegman.png'}}" id="mapOptionImg" ng-click="showStreetView?showStreetView=false:showStreetView=true">
+   				<br>
+
+   				<div ng-show="showStreetView">
+			      <div id="street-view"></div>
+			    </div>
+			    
+			    <div id="route_panel">
+			      <div id="map-div">
+			      </div>
+			      <div id="route-details-panel">
+			      </div>
+			    </div>
+
+			  </div>
+
+
+			  <div class="tab-pane fade" id="reviewsPanel" role="tabpanel" aria-labelledby="reviews-tab">
+
+			  	<div class="btn-group" ng-init="reviews_option_text='Google Reviews'">
+				    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown"> <span ng-bind="reviews_option_text"></span> <span class="caret"></span>
+				    </button>
+
+				    <div class="dropdown-menu">
+				      <a class="dropdown-item" href="" ng-click="switchReviews('G')">Google Reviews</a>
+				      <a class="dropdown-item" href="" ng-click="switchReviews('Y')">Yelp Reviews</a>
+				    </div>
+				</div>
+
+				<div class="btn-group" ng-init="reviews_option_text2='Default Order'">
+				    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown"> <span ng-bind="reviews_option_text2"></span> <span class="caret"></span>
+				    </button>
+
+				    <div class="dropdown-menu">
+				      <a class="dropdown-item" href="" ng-click="sortReviews(1)">Default Order</a>
+				      <a class="dropdown-item" href="" ng-click="sortReviews(2)">Highest Rating</a>
+				      <a class="dropdown-item" href="" ng-click="sortReviews(3)">Lowest Rating</a>
+				      <a class="dropdown-item" href="" ng-click="sortReviews(4)">Most Recent</a>
+				      <a class="dropdown-item" href="" ng-click="sortReviews(5)">Least Recent</a>
+				    </div>
+				</div>
+				<!-- ===============Google and Yelp reviews -->
+				<div ng-init="show_google_reviews=true" ng-show="show_google_reviews" id="reviews_div1">
+					<div>
+						<table class="table table-bordered review_tables" ng-repeat="review in current_place_details.reviews" >
+						  <tbody>
+						    <tr>
+						      <td><a href="{{review.author_url}}" target="_blank"><img class="review_profile_img" src="{{review.profile_photo_url}}"></a>
+						      </td>
+						      <td>
+						      	<div>
+						      	<a href="{{review.author_url}}" target="_blank"><p>{{review.author_name}}</p></a>
+						      	<!-- review rating stars-->
+							    <div class="stars-outer">
+									<i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i>
+									<div class="stars-inner" ng-style="{'width':review.rating}">
+									  	<i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i>
+									</div>
+								</div><span style="color: gray">{{review.time}}</span>
+						        <p>{{review.text}}</p>
+						      	</div>
+						      </td>
+						    </tr>
+						  </tbody>
+						</table>
+
+
+					</div>
+				</div>
+
+				<div ng-show="!show_google_reviews">
+					<div>
+						<table class="table table-bordered review_tables" ng-repeat="review in yelp_reviews" >
+						  <tbody>
+						    <tr>
+						      <td><a href="{{review.url}}" target="_blank"><img class="rounded-circle review_profile_img" src="{{review.user.image_url}}"></a>
+						      </td>
+						      <td>
+						      	<div>
+						      	<a href="{{review.url}}" target="_blank"><p>{{review.user.name}}</p></a>
+						      	<!-- review rating stars-->
+							    <div class="stars-outer">
+									<i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i><i class="far fa-star outer-stars"></i>
+									<div class="stars-inner" ng-style="{'width':review.rating}">
+									  	<i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i><i class="fas fa-star yellow-stars"></i>
+									</div>
+								</div><span style="color: gray">{{review.time_created}}</span>
+						        <p>{{review.text}}</p>
+						      	</div>
+						      </td>
+						    </tr>
+						  </tbody>
+						</table>
+
+
+					</div>
+
+				</div>
+
+			  </div>
+
+			</div>
+
+		<!--===============Details Panel Ends==================-->
+ 		</div>
  	</div>
 
     </div>
 </body>
 </html>
 
- <script src="https://maps.googleapis.com/maps/api/js?libraries=places&language=en&key=AIzaSyBANG0OukICl6dRuG2FsjZcPkAcjgS7N7Q"></script>
 
  <!--Google auto complete api key:  AIzaSyBANG0OukICl6dRuG2FsjZcPkAcjgS7N7Q-->
  <script>
       var input = document.getElementById('enter_location');
       var autocomplete = new google.maps.places.Autocomplete(input);
+
+      var input2 = document.getElementById('map_location_input');
+      var autocomplete2 = new google.maps.places.Autocomplete(input2);
 </script>
 
